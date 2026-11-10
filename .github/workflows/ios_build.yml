@@ -1,0 +1,52 @@
+name: Flutter iOS IPA Build
+
+on:
+  push:
+    branches:
+      - main # Sostituisci con il nome del tuo branch principale, se diverso
+  workflow_dispatch: # Permette l'avvio manuale del processo
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configura Java (richiesto da alcune dipendenze Flutter)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Configura Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+
+      - name: Installa le dipendenze
+        run: flutter pub get
+
+      - name: Prepara i file iOS (Genera la cartella Pods)
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Compila il pacchetto iOS
+        # Compila senza firma per superare i blocchi dei certificati Apple se non hai un account developer registrato nel CI
+        run: flutter build ios --release --no-codesign
+
+      - name: Converte .app in .ipa (Impacchettamento)
+        run: |
+          mkdir -p Payload
+          mv build/ios/iphoneos/Runner.app Payload/
+          zip -r -y Payload.zip Payload
+          mv Payload.zip Runner.ipa
+
+      - name: Carica l'IPA negli Artifacts di GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: Runner.ipa
