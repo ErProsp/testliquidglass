@@ -28,12 +28,6 @@ jobs:
       - name: Installa le dipendenze
         run: flutter pub get
 
-      - name: Prepara i file iOS (Genera la cartella Pods)
-        run: |
-          cd ios
-          pod install
-          cd ..
-
       - name: Compila il pacchetto iOS
         # Compila senza firma per superare i blocchi dei certificati Apple se non hai un account developer registrato nel CI
         run: flutter build ios --release --no-codesign
