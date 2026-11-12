@@ -87,8 +87,8 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.onCamera});
-  final VoidCallback onCamera;
+  const _TitleRow({required this.settingsButton});
+  final Widget settingsButton;
 
   @override
   Widget build(BuildContext context) {
@@ -106,16 +106,7 @@ class _TitleRow extends StatelessWidget {
           child: Text('Search', style: AppTextStyles.pageTitle(p)),
         ),
         const Spacer(),
-        SizedBox(
-          width: AppSizes.iconButton,
-          height: AppSizes.iconButton,
-          child: CNButton.icon(
-            icon: const CNSymbol('camera', size: 18),
-            config: const CNButtonConfig(style: CNButtonStyle.glass),
-            semanticLabel: 'Search by camera',
-            onPressed: onCamera,
-          ),
-        ),
+        settingsButton,
       ],
     );
   }
@@ -1281,6 +1272,22 @@ class _SearchPageState extends State<SearchPage> {
     _showToast('${_kTrackMenuLabels[index]} • ${t.title}');
   }
 
+  // ---- provider menu ----
+
+  // ---- settings button ----
+
+  Widget get _settingsButton => SearchProviderSelector(
+    options: SearchFilter.values
+        .map((f) => SelectionItem(title: f.label))
+        .toList(),
+    onItemSelected: (item) {
+      final f = SearchFilter.values.firstWhere((x) => x.label == item.title);
+      HapticFeedback.selectionClick();
+      _controller.setFilter(f);
+    },
+    selectedItem: SelectionItem(title: _controller.filter.label),
+  );
+
   // ---- build ----
 
   Widget _body(SearchState s, AppPalette p) {
@@ -1345,7 +1352,7 @@ class _SearchPageState extends State<SearchPage> {
                 topInset: pad.top,
                 palette: p,
                 titleRow: _TitleRow(
-                  onCamera: () => _showToast('Camera search coming soon'),
+                  settingsButton: _settingsButton,
                 ),
                 searchBar: _SearchBar(
                   controller: _text,
